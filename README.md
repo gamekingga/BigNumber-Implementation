@@ -1,4 +1,4 @@
 # BigNumber-Implementation
-For the purpose of implementing Cryptography method.
+For the purpose of implementing Cryptography method via C++.
 
-All of the calculation is based on base-16.
+All of the calculation is based on hex-string input.

@@ -2,7 +2,6 @@
 #define __BIGNUMBER_H__
 #include <stdio.h>
 #include <stdlib.h>
-
 class BigNumber{
 	public:
 		BigNumber();	//constructor
@@ -33,12 +32,13 @@ class BigNumber{
 		BigNumber Pow(BigNumber e, BigNumber n);//self^e mod n
 		BigNumber squareRoot(BigNumber p);//one of the self^(1/2) mod p
 		BigNumber ExEuclid(BigNumber p);//cx+py = cx = 1, return x, which is the inverse of c. self & p are relative prime.
+		int getLength();
+		int getSign();
 
-
-	private:
+	//private:
 		int num_int[200];
 		int length;
 		int sign;
 };
-
+BigNumber recExEuclid(BigNumber a, BigNumber b, BigNumber* x, BigNumber* y);
 #endif	/*__BIGNUMBER_H__*/

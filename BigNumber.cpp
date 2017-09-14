@@ -7,7 +7,6 @@
 #include <algorithm>
 #define self (*this)
 using namespace std;
-
 //Constructor of BigNumber class
 BigNumber::BigNumber(){
 	memset(num_int, 0, sizeof(num_int));
@@ -29,11 +28,11 @@ BigNumber::~BigNumber(){
 ***********************************/
 void
 BigNumber::hexToInt(char* num_str){
-    int length = strlen(num_str);
-    for(int x=0; x<length; x++){
-        switch(num_str[length-x-1]){
+    int l = strlen(num_str);
+    for(int x=0; x<l; x++){
+        switch(num_str[l-x-1]){
             case '-':
-            	sign = 1;	length--;	break;
+            	sign = 1;	l--;	break;
             case '0':
                 num_int[x] = 0;break;
             case '1':
@@ -70,7 +69,10 @@ BigNumber::hexToInt(char* num_str){
                 num_int[x] = 0;break;
         }
     }
-    self.length = length;
+    for(length = l; length>0; length--){
+        if(num_int[length-1] != 0)
+            break;
+    }
     return;
 }
 
@@ -414,59 +416,8 @@ BigNumber::divisionQuot(BigNumber b){
 ***********************************/
 BigNumber
 BigNumber::divisionMod(BigNumber b){
-	bool flag = false;	//flag: record whether self is + or -	(+ => false, - => true)
-	BigNumber zero;
-    
-    //handle negative bignumber and |self|<|b| situation
-    BigNumber p_self = self;	
-    if(self.sign == 1){
-    	p_self.sign = 0;
-    	flag = true;
-    }
-    if(b.Equal(p_self.Larger(b))){// |self|<|b|
-    	if(!flag) return p_self;
-    	else return b.Minus(p_self);
-    }
-
-    //initialize some variables
-    BigNumber dividend = p_self;
-    BigNumber quot;
-    BigNumber temp;
-    int l_m_s = p_self.length - b.length;
-    int k;
-    
-    //get quot's value by the concept of long-division method
-    for(int i=l_m_s; i>=0; i--){
-        k=0;
-        temp = b;
-        for(int j=temp.length-1; j>=0; j--)
-            temp.num_int[j+i] = temp.num_int[j];
-        for(int j=i-1; j>=0; j--)
-        	temp.num_int[j] = 0;
-        temp.length += i;
-        
-        while(dividend.Equal(dividend.Larger(temp))){
-            dividend = dividend.Minus(temp);
-            k++;
-        }
-        quot.num_int[i] = k;
-    }
-
-    //get quot's length
-    for(int i=l_m_s; i>=0; i--){
-        if(quot.num_int[i]!=0){
-            quot.length = i+1;
-            break;
-        }
-    }
-    
-    //get quot's sign, and return quot
-    if(!flag){
-    	return self.Minus(quot.Times(b));
-    }
-    else{
-    	return b.Minus(self.Minus(quot.Times(b)));
-    }
+    BigNumber quot = self.divisionQuot(b);
+    return (self.sign==0)?self-(b*quot):b+(self-(b*quot));
 }
 
 /***********************************
@@ -658,30 +609,35 @@ BigNumber::squareRoot(BigNumber p){
 
 	return the inverse of c, a BigNumber instance
 ***********************************/
+BigNumber recExEuclid(BigNumber a, BigNumber b, BigNumber* x, BigNumber* y){
+    BigNumber one;  one.num_int[0] = 1; one.length = 1;
+    BigNumber tmp, d, zero;
+    if(b.Equal(zero)){
+        *x = one;
+        *y = zero;
+        return a;
+    }
+    d=recExEuclid(b, a%b, x, y);
+    tmp = *x;
+    *x=*y;
+    *y=tmp-(a/b*(*y));
+    return d;
+}
 BigNumber
 BigNumber::ExEuclid(BigNumber p){
-    BigNumber one;	one.num_int[0] = 1;	one.length = 1;
-    BigNumber zero;
-    BigNumber i_ = one;
-    BigNumber j_ = zero;
-    BigNumber i = zero;
-    BigNumber j = one;
-    BigNumber c = self.Larger(p);
-    BigNumber d = self.Smaller(p);
-	
-	BigNumber q, r, t;
-    while (1){
-        q = c.divisionQuot(d);
-        r = c.divisionMod(d);
-        c = d;	d = r;
-        
-        t = i_;	i_ = i;	i = t.Minus(q.Times(i));
-        t = j_;	j_ = j;	j = t.Minus(q.Times(j));
-        if (r.Equal(one))	break;
-    }
-    if(p.Equal(self.Larger(p))){
-    	BigNumber temp;
-    	temp = i; i = j; j = temp;
-    }
-    return i;
+    BigNumber x, y;
+    BigNumber gcd = recExEuclid(self, p, &x, &y);
+    //gcd.printBigNumber();
+    return x%p;
+}
+
+
+int
+BigNumber::getLength(){
+    return self.length;
+}
+
+int
+BigNumber::getSign(){
+    return self.sign;
 }
